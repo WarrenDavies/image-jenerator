@@ -9,6 +9,8 @@ class ImageGenerationRecord():
     filename: str = ""
     timestamp: str = ""
     model: str = ""
+    device: str = ""
+    dtype: str = ""
     prompt: str = ""
     seed: str = ""
     height: int = 0

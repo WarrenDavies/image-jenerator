@@ -17,7 +17,10 @@ class StableDiffusion_1_5(ImageGenerator):
         self.pipe = None
         self.images = None
         self.prompts = config["prompts"] * config["images_to_generate"]
-        self.dtype = config["dtype"]
+
+
+    def __post_init__(self):
+        super().__post_init__()
 
 
     def create_pipeline(self):
@@ -25,7 +28,7 @@ class StableDiffusion_1_5(ImageGenerator):
             self.config["model_path"],
             torch_dtype=self.dtype,
             safety_checker=None
-        ).to(self.config["device"])
+        ).to(self.device)
 
         if self.config["enable_attention_slicing"]:
             self.pipe.enable_attention_slicing()
@@ -36,7 +39,7 @@ class StableDiffusion_1_5(ImageGenerator):
 
 
     def run_pipeline_impl(self):
-        with autocast(self.config["device"]):    
+        with autocast(self.device):    
             self.images = self.pipe(
                 self.prompts, 
                 height = self.config["height"], 

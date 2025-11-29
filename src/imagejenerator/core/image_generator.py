@@ -2,9 +2,17 @@ from abc import ABC, abstractmethod
 import datetime
 import time
 import os
+import torch
 
 from imagejenerator.core.image_generation_record import ImageGenerationRecord
 from imagejenerator.config import config
+
+
+DTYPES_MAP = {
+    "bfloat16": torch.bfloat16,
+    "float16": torch.float16,
+    "float32": torch.float32,
+}
 
 
 class ImageGenerator(ABC):
@@ -16,6 +24,38 @@ class ImageGenerator(ABC):
         self.image_generation_record = ImageGenerationRecord()
         self.save_timestamp = None
         self.prompts = []
+        self.dtype = None
+        self.device = None
+        self._detect_device_and_dtype()
+
+
+    def _detect_device_and_dtype(self):
+        if self.config["device"] == "detect":
+            self.set_device()
+        else:
+            self.device = self.config["device"]
+
+        self.set_dtype()
+        
+
+    def set_device(self):
+        if torch.cuda.is_available():
+            self.device = "cuda"
+        else:
+            self.device = "cpu"
+
+
+    def set_dtype(self):
+        if self.config["dtype"] == "detect":
+            if self.device == "cuda":
+                self.dtype = torch.bfloat16
+                self.config["dtype"] = "bfloat16"
+            else:
+                self.dtype = torch.float32
+                self.config["dtype"] = "float32"
+            return
+        
+        self.dtype = DTYPES_MAP[self.config["dtype"]]
 
 
     @abstractmethod
@@ -61,6 +101,8 @@ class ImageGenerator(ABC):
         self.image_generation_record.filename = f"{self.save_timestamp}_no{i}.png"
         self.image_generation_record.timestamp = self.save_timestamp
         self.image_generation_record.model = self.config["model"]
+        self.image_generation_record.device = self.device
+        self.image_generation_record.dtype = self.config["dtype"]
         self.image_generation_record.prompt = prompt
         self.image_generation_record.seed = self.config["seed"]
         self.image_generation_record.height = self.config["height"]

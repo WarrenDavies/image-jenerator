@@ -12,9 +12,10 @@ config = {
     "width": 512,
     "num_inference_steps": 8,
     "guidance_scale": 10,
-    "images_to_generate": 2,
+    "images_to_generate": 1,
     "seed": 100,
-    "dtype": torch.float16,
+    "dtype": "float32",
+
 
     "image_save_folder": "./images/",
 
@@ -22,7 +23,6 @@ config = {
     "image_gen_data_file_path": "./stats/image_gen_stats.csv",
 
     "prompts": [
-        "A scene from the Street Fighter video game",
-        "The owl of Athena"
+        "A beautiful library",
     ]
 }
