@@ -46,6 +46,7 @@ class StableDiffusion_1_5(ImageGenerator):
                 width = self.config["width"],
                 num_inference_steps = self.config["num_inference_steps"],
                 guidance_scale = self.config["guidance_scale"],
+                generator=self.generators,
             ).images
 
     def complete_image_generation_record_impl(self):

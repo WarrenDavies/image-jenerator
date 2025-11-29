@@ -12,7 +12,7 @@ class ImageGenerationRecord():
     device: str = ""
     dtype: str = ""
     prompt: str = ""
-    seed: str = ""
+    seed: int = 0
     height: int = 0
     width: int = 0
     inf_steps: int = 0

@@ -13,8 +13,8 @@ config = {
     "num_inference_steps": 8,
     "guidance_scale": 10,
     "images_to_generate": 1,
-    "seed": 100,
-    "dtype": "float32",
+    "seeds": [], # leave empty for random
+    "dtype": "bfloat16",
 
 
     "image_save_folder": "./images/",
@@ -24,5 +24,7 @@ config = {
 
     "prompts": [
         "A beautiful library",
+        "A rockstar playing a guitar solo on stage",
+        "Silhouette of a woman dancing next to a tree in front of a sunset"
     ]
 }

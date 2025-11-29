@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 import datetime
 import time
 import os
+import random
 import torch
 
 from imagejenerator.core.image_generation_record import ImageGenerationRecord
@@ -26,10 +27,13 @@ class ImageGenerator(ABC):
         self.prompts = []
         self.dtype = None
         self.device = None
-        self._detect_device_and_dtype()
+        self.seeds = config["seeds"]
+        self.generators = []
+        self.detect_device_and_dtype()
+        self.create_generators()
 
 
-    def _detect_device_and_dtype(self):
+    def detect_device_and_dtype(self):
         if self.config["device"] == "detect":
             self.set_device()
         else:
@@ -58,6 +62,22 @@ class ImageGenerator(ABC):
         self.dtype = DTYPES_MAP[self.config["dtype"]]
 
 
+    def create_generators(self):
+        if not self.seeds:
+            batch_size = len(self.config["prompts"]) * self.config["images_to_generate"]
+            self.seeds = [self.create_random_seed() for i in range(batch_size)]
+                
+        self.generators = [
+            torch.Generator(device=self.device).manual_seed(seed)
+            for seed in self.seeds
+        ]
+
+
+    @staticmethod
+    def create_random_seed(size: int = 32) -> int:
+        return random.randint(0, (2**size) - 1)
+
+
     @abstractmethod
     def create_pipeline(self):
         pass
@@ -69,7 +89,7 @@ class ImageGenerator(ABC):
         end_time = time.time()
         self.image_generation_record.total_generation_time = end_time - start_time
         self.image_generation_record.generation_time_per_image = (
-            self.image_generation_record.total_generation_time / self.config["images_to_generate"]
+            self.image_generation_record.total_generation_time / (self.config["images_to_generate"] * len(self.prompts))
         )
         print("Generation time: ", str(self.image_generation_record.total_generation_time))
         print("time per image: ", str(self.image_generation_record.generation_time_per_image))
@@ -104,7 +124,7 @@ class ImageGenerator(ABC):
         self.image_generation_record.device = self.device
         self.image_generation_record.dtype = self.config["dtype"]
         self.image_generation_record.prompt = prompt
-        self.image_generation_record.seed = self.config["seed"]
+        self.image_generation_record.seed = self.seeds[i]
         self.image_generation_record.height = self.config["height"]
         self.image_generation_record.width = self.config["width"]
         self.image_generation_record.inf_steps = self.config["num_inference_steps"]
