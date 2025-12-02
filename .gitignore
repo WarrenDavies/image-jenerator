@@ -1,5 +1,6 @@
 scratch/
 generate_image.py
+!src/imagejenerator/examples/generate_image.py
 images/
 stats/*
 
