@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "imagejenerator"
+version = "0.1.0"
+description = "Image generation suite."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "torch",
+    "diffusers",
+    "transformers",
+    "accelerate",
+    "Pillow",
+    "pyyaml",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/WarrenDavies/imagejenerator"
