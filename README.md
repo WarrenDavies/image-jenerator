@@ -13,16 +13,62 @@ It takes care of the setup such as device management (CUDA/CPU), mixed-precision
 
 ## Installation
 
-Not on PyPI yet, so...
+Install into your package with pip:
 
 ```sh
-git clone https://github.com/WarrenDavies/image-jenerator.git
-cd imagejenerator
+pip install imagejenerator
+```
+
+If you're not installing imagejenerator into another project and just want to make images:
+
+```sh
 python -m venv venv
 (Linux/macOS) source venv/bin/activate
 (Windows) .\venv\Scripts\activate
-pip install -e .
+pip install imagejenerator
 ```
+
+## Quick Start
+
+See the example files:
+
+* `src/imagejenerator/examples/quick_start.py`
+* `src/imagejenerator/examples/config.py`
+
+Create an image generator by passing your config to `registry.get_model_class(config)`. Your config must contain the name of the model that you want to use (as listed in the registry). This creates your image generator and moves your config into it. Note that the model is not loaded into RAM at this stage. 
+
+```py
+from imagejenerator.models import registry
+from imagejenerator.examples.config import config
+
+image_generator = registry.get_model_class(config)
+```
+
+Call `image_generator.generate_image()` to create your image:
+
+```py
+image_generator.generate_image()
+```
+
+## Splitting up the workflow
+
+`image_generator.generate_image()` is the main workflow method which:
+
+1. Creates the pipeline.
+2. Runs the pipeline implementation.
+3. Saves the resulting images to disk.
+4. Optionally saves generation statistics. (if save_image_gen_stats == True in your config)
+
+You can do these separately with:
+
+```py
+image_generator.create_pipeline()
+image_generator.run_pipeline()
+image_generator.save_image()
+image_generator.save_image_gen_stats()
+```
+
+For example, once the model is loaded into memory, you won't need to run `image_generator.create_pipeline()` again.
 
 ## Config
 
@@ -47,25 +93,17 @@ Create a config dictionary with the following keys (default parameters are locat
 | `save_image_gen_stats` | `bool` | If True, saves detailed metadata to the statistics CSV file. |
 | `image_gen_data_file_path` | `str` | Path to the output statistics CSV file. |
 
-## Generating images
+## Benchmarking
 
-You can run the example script:
+Image generation metadata is (optionally) saved to the location specified in your config. This includes your config settings, as well as the generation time.
 
-```sh
-python src/imagejenerator/examples/generate_image.py
-```
+If you are batching, the generation time will be:
 
-Which simply contains:
+`total generation time / number of images in batch`
 
-```py
-from imagejenerator.models import registry
-from imagejenerator.config import config
+When batching the inference steps happen sequentially for all images in the batch. That is, inference step 1 for all images, inference step 2 for all images... and so on. This effectively means that the generation time for all images will reflect the generation time for the *slowest* image.
 
-image_generator = registry.get_model_class(config)
-image_generator.generate_image()
-```
-
-Your images and a statistics CSV file will be saved to the configured output folders.
+So you might not want to batch if you're benchmarking different settings, prompt lengths etc.
 
 ## Architecture and Extensibility
 
